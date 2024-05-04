@@ -1,0 +1,84 @@
+<?php
+
+include ("KontrakView.php");
+include ("presenter/ProsesPasien.php");
+
+// TampilPasien.php
+
+class TampilPasien implements KontrakView
+{
+    private $prosespasien; // presenter yang dapat berinteraksi langsung dengan view
+    private $tpl;
+
+    function __construct()
+    {
+        // konstruktor
+        $this->prosespasien = new ProsesPasien();
+    }
+
+    function tampil()
+    {
+        $this->prosespasien->prosesDataPasien();
+        $data = null;
+        // Semua terkait tampilan adalah tanggung jawab view
+        for ($i = 0; $i < $this->prosespasien->getSize(); $i++) {
+            $no = $i + 1;
+            // Tambahkan tombol delete dan update di dalam baris tabel
+            // Tambahkan tombol-tombol delete dan edit di dalam loop for
+            $data .= "<tr>
+                <td>" . $no . "</td>
+                <td>" . $this->prosespasien->getNik($i) . "</td>
+                <td>" . $this->prosespasien->getNama($i) . "</td>
+                <td>" . $this->prosespasien->getTempat($i) . "</td>
+                <td>" . $this->prosespasien->getTl($i) . "</td>
+                <td>" . $this->prosespasien->getGender($i) . "</td>
+                <td>" . $this->prosespasien->getTelp($i) . "</td>
+                <td>" . $this->prosespasien->getEmail($i) . "</td>
+                <td>
+				<a class='btn btn-danger' href='index.php?delete=" . $this->prosespasien->getId($i) . "' onclick='return confirmDelete()'>Delete</a>
+                </td>
+                <td>
+                    <a class='btn btn-warning' href='presenter/ProsesPasien.php?action=edit&id=" . $this->prosespasien->getId($i) . "'>Edit</a>
+                </td>
+            </tr>";
+        }
+
+        // Membaca template skin.html
+        $this->tpl = new Template("templates/skin.html");
+
+        // Mengganti kode Data_Tabel dengan data yang sudah diproses
+        $this->tpl->replace("DATA_TABEL", $data);
+
+        // Menampilkan ke layar
+        $this->tpl->write();
+    }
+
+    function deleteToPresenter($id){
+        if (isset($_GET['delete'])) {
+            // Memanggil konfirmasi dari tampilan
+            $confirmed = isset($_GET['confirmed']) ? $_GET['confirmed'] : false;
+            
+            // Jika konfirmasi telah dilakukan, maka lakukan penghapusan
+            if ($confirmed) {
+                $id->deletePasien($_GET['delete']);
+            } 
+            else {
+                header("Location:index.php");
+                exit();
+            }
+        }
+    }
+
+    function toForm()
+	{	
+		$this->tpl = new Template("templates/skinhtml");
+	}
+}
+
+?>
+
+<script>
+    function confirmDelete() {
+        return confirm("Apakah Anda yakin ingin menghapus data?");
+    }
+</script>
